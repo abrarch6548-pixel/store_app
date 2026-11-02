@@ -1,1 +1,80 @@
-# store_app
+#name: Build Android APK and Windows App
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+
+      - name: Generate Android System Files
+        run: |
+          cp lib/main.dart lib/main_backup.dart
+          flutter create . --org com.abrarch.storeapp --platforms=android
+          cp lib/main_backup.dart lib/main.dart
+          rm lib/main_backup.dart
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-windows:
+    name: Build Windows Software
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+
+      - name: Generate Windows System Files
+        run: |
+          Copy-Item lib\main.dart lib\main_backup.dart
+          flutter config --enable-windows-desktop
+          flutter create . --org com.abrarch.storeapp --platforms=windows
+          Copy-Item lib\main_backup.dart lib\main.dart
+          Remove-Item lib\main_backup.dart
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Compress Windows Build
+        run: |
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath build\windows-app.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-App
+          path: build\windows-app.zip store_app
