@@ -24,12 +24,13 @@ jobs:
           flutter-version: '3.19.x'
           channel: 'stable'
 
-      - name: Generate Android System Files
+      - name: Generate Android Skeleton Safely
         run: |
+          cp pubspec.yaml pubspec_backup.yaml
           cp lib/main.dart lib/main_backup.dart
-          flutter create . --org com.abrarch.storeapp --platforms=android
+          flutter create . --org com.abrarch.storeapp --project-name store_inventory_app --platforms=android
+          cp pubspec_backup.yaml pubspec.yaml
           cp lib/main_backup.dart lib/main.dart
-          rm lib/main_backup.dart
 
       - name: Install Dependencies
         run: flutter pub get
@@ -55,13 +56,14 @@ jobs:
           flutter-version: '3.19.x'
           channel: 'stable'
 
-      - name: Generate Windows System Files
+      - name: Generate Windows Skeleton Safely
         run: |
+          Copy-Item pubspec.yaml pubspec_backup.yaml
           Copy-Item lib\main.dart lib\main_backup.dart
           flutter config --enable-windows-desktop
-          flutter create . --org com.abrarch.storeapp --platforms=windows
+          flutter create . --org com.abrarch.storeapp --project-name store_inventory_app --platforms=windows
+          Copy-Item pubspec_backup.yaml pubspec.yaml
           Copy-Item lib\main_backup.dart lib\main.dart
-          Remove-Item lib\main_backup.dart
 
       - name: Install Dependencies
         run: flutter pub get
